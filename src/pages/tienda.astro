@@ -1,0 +1,47 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { getProductos } from '../lib/queries';
+
+const productos = await getProductos();
+
+const categorias = [
+  { nombre: 'Abrigos', slug: 'abrigos' },
+  { nombre: 'Sweaters y Buzos', slug: 'sweaters-y-buzos' },
+  { nombre: 'Remeras', slug: 'remeras' },
+  { nombre: 'Camisas y Blusas', slug: 'camisas-y-blusas' },
+  { nombre: 'Pantalones', slug: 'pantalones' },
+  { nombre: 'Vestidos y Monos', slug: 'vestidos-y-monos' },
+  { nombre: 'Jackets y Parkas', slug: 'jackets-y-parkas' },
+];
+---
+
+<Layout title="Tienda">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <h1 class="font-serif text-3xl font-light text-center mb-10">Tienda</h1>
+
+    <!-- Filtro por categoría -->
+    <div class="flex flex-wrap gap-2 justify-center mb-12">
+      <a
+        href="/tienda"
+        class="px-5 py-2 text-xs tracking-widest uppercase border border-dark bg-dark text-offwhite"
+      >Todo</a>
+      {categorias.map(cat => (
+        <a
+          href={`/${cat.slug}`}
+          class="px-5 py-2 text-xs tracking-widest uppercase border border-sand hover:border-dark hover:bg-dark hover:text-offwhite transition-colors"
+        >
+          {cat.nombre}
+        </a>
+      ))}
+    </div>
+
+    {productos.length > 0 ? (
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {productos.map(p => <ProductCard producto={p} />)}
+      </div>
+    ) : (
+      <p class="text-center text-sand py-20 text-sm tracking-wide">No hay productos disponibles.</p>
+    )}
+  </div>
+</Layout>

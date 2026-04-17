@@ -1,0 +1,65 @@
+---
+const categorias = [
+  { nombre: 'Abrigos', slug: 'abrigos' },
+  { nombre: 'Sweaters y Buzos', slug: 'sweaters-y-buzos' },
+  { nombre: 'Remeras', slug: 'remeras' },
+  { nombre: 'Camisas y Blusas', slug: 'camisas-y-blusas' },
+  { nombre: 'Pantalones', slug: 'pantalones' },
+  { nombre: 'Vestidos y Monos', slug: 'vestidos-y-monos' },
+  { nombre: 'Jackets y Parkas', slug: 'jackets-y-parkas' },
+];
+---
+
+<header class="bg-offwhite border-b border-sand-light sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-center justify-between h-14">
+      <a href="/" class="font-serif text-2xl tracking-[0.3em] font-light">DELLANO</a>
+
+      <!-- Desktop nav -->
+      <nav class="hidden lg:flex items-center gap-6">
+        <a
+          href="/tienda"
+          class="text-xs tracking-widest uppercase hover:text-terracotta transition-colors"
+        >Tienda</a>
+        {categorias.map(cat => (
+          <a
+            href={`/${cat.slug}`}
+            class="text-xs tracking-widest uppercase hover:text-terracotta transition-colors"
+          >
+            {cat.nombre}
+          </a>
+        ))}
+      </nav>
+
+      <!-- Mobile hamburger -->
+      <button id="menu-toggle" class="lg:hidden p-2" aria-label="Abrir menú">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden lg:hidden border-t border-sand-light bg-offwhite">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+      <a href="/tienda" class="text-sm tracking-widest uppercase py-3 border-b border-sand-light hover:text-terracotta">Tienda</a>
+      {categorias.map(cat => (
+        <a
+          href={`/${cat.slug}`}
+          class="text-sm tracking-widest uppercase py-3 border-b border-sand-light hover:text-terracotta"
+        >
+          {cat.nombre}
+        </a>
+      ))}
+    </div>
+  </div>
+</header>
+
+<script>
+  const toggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+  toggle?.addEventListener('click', () => menu?.classList.toggle('hidden'));
+</script>

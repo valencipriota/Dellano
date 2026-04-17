@@ -1,0 +1,72 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { getProductosDestacados } from '../lib/queries';
+
+const productos = await getProductosDestacados();
+
+const categorias = [
+  { nombre: 'Abrigos', slug: 'abrigos' },
+  { nombre: 'Sweaters y Buzos', slug: 'sweaters-y-buzos' },
+  { nombre: 'Remeras', slug: 'remeras' },
+  { nombre: 'Camisas y Blusas', slug: 'camisas-y-blusas' },
+  { nombre: 'Pantalones', slug: 'pantalones' },
+  { nombre: 'Vestidos y Monos', slug: 'vestidos-y-monos' },
+  { nombre: 'Jackets y Parkas', slug: 'jackets-y-parkas' },
+];
+---
+
+<Layout>
+  <!-- Hero -->
+  <section class="border-b border-sand-light">
+    <div class="max-w-7xl mx-auto px-4 py-28 md:py-44 text-center">
+      <p class="text-xs tracking-[0.4em] uppercase text-sand mb-6">Nueva Colección</p>
+      <h1 class="font-serif text-7xl md:text-9xl font-light tracking-[0.15em] mb-10">DELLANO</h1>
+      <a
+        href="/tienda"
+        class="inline-block border border-dark px-10 py-3.5 text-xs tracking-widest uppercase hover:bg-dark hover:text-offwhite transition-colors"
+      >
+        Ver Colección
+      </a>
+    </div>
+  </section>
+
+  <!-- Categorías -->
+  <section class="border-b border-sand-light">
+    <div class="max-w-7xl mx-auto px-4 py-14">
+      <h2 class="font-serif text-2xl font-light text-center mb-8">Categorías</h2>
+      <div class="flex flex-wrap justify-center gap-3">
+        {categorias.map(cat => (
+          <a
+            href={`/${cat.slug}`}
+            class="border border-sand px-6 py-2.5 text-xs tracking-widest uppercase hover:bg-dark hover:text-offwhite hover:border-dark transition-colors"
+          >
+            {cat.nombre}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Productos destacados -->
+  <section class="max-w-7xl mx-auto px-4 py-16">
+    <h2 class="font-serif text-2xl font-light text-center mb-10">Destacados</h2>
+    {productos.length > 0 ? (
+      <>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {productos.map(p => <ProductCard producto={p} />)}
+        </div>
+        <div class="text-center mt-12">
+          <a
+            href="/tienda"
+            class="inline-block border border-dark px-10 py-3.5 text-xs tracking-widest uppercase hover:bg-dark hover:text-offwhite transition-colors"
+          >
+            Ver Todo
+          </a>
+        </div>
+      </>
+    ) : (
+      <p class="text-center text-sand py-16 text-sm tracking-wide">Próximamente nuevos productos.</p>
+    )}
+  </section>
+</Layout>

@@ -1,0 +1,34 @@
+---
+import type { Producto } from '../lib/queries';
+import { urlFor } from '../lib/sanity';
+
+interface Props {
+  producto: Producto;
+}
+
+const { producto } = Astro.props;
+const imagenUrl = producto.imagenes?.[0]
+  ? urlFor(producto.imagenes[0]).width(600).height(800).fit('crop').url()
+  : null;
+---
+
+<a href={`/producto/${producto.slug.current}`} class="group block">
+  <div class="aspect-[3/4] bg-sand-light overflow-hidden mb-3">
+    {imagenUrl ? (
+      <img
+        src={imagenUrl}
+        alt={producto.nombre}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+      />
+    ) : (
+      <div class="w-full h-full flex items-center justify-center text-sand text-xs tracking-widest uppercase">
+        Sin imagen
+      </div>
+    )}
+  </div>
+  <div class="space-y-1 px-0.5">
+    <h3 class="text-sm font-light tracking-wide">{producto.nombre}</h3>
+    <p class="text-sm text-terracotta">$ {producto.precio.toLocaleString('es-AR')}</p>
+  </div>
+</a>
