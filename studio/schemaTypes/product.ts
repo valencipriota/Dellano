@@ -56,6 +56,23 @@ export default defineType({
       },
     }),
     defineField({
+      name: 'colores',
+      title: 'Colores disponibles',
+      type: 'array',
+      of: [{ type: 'string' }],
+      options: {
+        list: [
+          'blanco','off white','crema','beige','dulce de leche','camel','habano',
+          'chocolate','visón','gris topo','gris','silver','negro','gold',
+          'amarillo','naranja quemado','coral','rojo','cherry','fucsia',
+          'rosa pimienta','rosa palo','rosa empolvado','rosa nude','púrpura',
+          'turquesa','verde menta','verde salvia','verde canard','verde oliva',
+          'verde safari','verde militar','azul cielo','azul maya','azul royal',
+          'blue jean','azul marino',
+        ].map(c => ({ title: c.charAt(0).toUpperCase() + c.slice(1), value: c })),
+      },
+    }),
+    defineField({
       name: 'imagenes',
       title: 'Imágenes',
       type: 'array',

@@ -1,6 +1,7 @@
 ---
 import type { Producto } from '../lib/queries';
 import { urlFor } from '../lib/sanity';
+import { COLORES_HEX } from '../lib/colores';
 
 interface Props {
   producto: Producto;
@@ -10,10 +11,13 @@ const { producto } = Astro.props;
 const imagenUrl = producto.imagenes?.[0]
   ? urlFor(producto.imagenes[0]).width(600).height(800).fit('crop').url()
   : null;
+
+const precioTransferencia = Math.round(producto.precio * 0.9);
+const colores = producto.colores ?? [];
 ---
 
 <a href={`/producto/${producto.slug.current}`} class="group block">
-  <div class="aspect-[3/4] bg-sand-light overflow-hidden mb-3">
+  <div class="aspect-[3/4] bg-sand-light overflow-hidden mb-3 relative">
     {imagenUrl ? (
       <img
         src={imagenUrl}
@@ -27,8 +31,32 @@ const imagenUrl = producto.imagenes?.[0]
       </div>
     )}
   </div>
-  <div class="space-y-1 px-0.5">
+
+  <div class="space-y-1.5 px-0.5">
     <h3 class="text-sm font-light tracking-wide">{producto.nombre}</h3>
-    <p class="text-sm text-terracotta">$ {producto.precio.toLocaleString('es-AR')}</p>
+
+    <!-- Precios -->
+    <div class="flex flex-wrap items-baseline gap-2">
+      <p class="text-sm text-terracotta">$ {producto.precio.toLocaleString('es-AR')}</p>
+      <p class="text-[11px] text-terracotta/80 border border-terracotta/30 px-1.5 py-0.5 leading-tight">
+        $ {precioTransferencia.toLocaleString('es-AR')} transf.
+      </p>
+    </div>
+
+    <!-- Colores disponibles -->
+    {colores.length > 0 && (
+      <div class="flex flex-wrap gap-1 pt-0.5">
+        {colores.slice(0, 8).map(color => (
+          <span
+            class="w-3.5 h-3.5 rounded-full border border-sand-light/80 flex-shrink-0"
+            style={`background-color: ${COLORES_HEX[color] ?? '#ccc'}`}
+            title={color}
+          />
+        ))}
+        {colores.length > 8 && (
+          <span class="text-[10px] text-sand leading-none self-center">+{colores.length - 8}</span>
+        )}
+      </div>
+    )}
   </div>
 </a>

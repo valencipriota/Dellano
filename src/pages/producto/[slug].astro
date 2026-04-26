@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { getSlugsProductos, getProductoBySlug } from '../../lib/queries';
 import { urlFor } from '../../lib/sanity';
+import { COLORES_HEX } from '../../lib/colores';
 
 export async function getStaticPaths() {
   const slugs = await getSlugsProductos();
@@ -17,6 +18,17 @@ const imagenesUrls = (producto.imagenes ?? []).map(img =>
   urlFor(img).width(900).height(1200).fit('crop').url()
 );
 const imagenPrincipal = imagenesUrls[0] ?? null;
+
+const precioTransferencia = Math.round(producto.precio * 0.9);
+const colores = producto.colores ?? [];
+const talles = producto.talles ?? [];
+
+const tieneTalles = talles.length > 0;
+const tieneColores = colores.length > 0;
+
+const coloresJson = JSON.stringify(
+  Object.fromEntries(colores.map(c => [c, COLORES_HEX[c] ?? '#ccc']))
+);
 ---
 
 <Layout title={producto.nombre}>
@@ -78,25 +90,53 @@ const imagenPrincipal = imagenesUrls[0] ?? null;
             {producto.categoria.nombre}
           </a>
         )}
-        <h1 class="font-serif text-4xl font-light mb-3">{producto.nombre}</h1>
-        <p class="text-2xl text-terracotta mb-6">$ {producto.precio.toLocaleString('es-AR')}</p>
+        <h1 class="font-serif text-4xl font-light mb-4">{producto.nombre}</h1>
+
+        <!-- Precios -->
+        <div class="flex flex-wrap items-center gap-3 mb-2">
+          <p class="text-2xl text-terracotta">$ {producto.precio.toLocaleString('es-AR')}</p>
+          <div class="border border-terracotta/40 px-3 py-1.5 bg-terracotta/5">
+            <p class="text-sm text-terracotta">$ {precioTransferencia.toLocaleString('es-AR')} <span class="text-xs">con transferencia</span></p>
+          </div>
+        </div>
+        <p class="text-xs text-sand mb-6 tracking-wide">10% OFF abonando con transferencia bancaria</p>
 
         {producto.descripcion && (
           <p class="text-sm text-dark/70 leading-relaxed mb-6">{producto.descripcion}</p>
         )}
 
         <!-- Selector de talles -->
-        {producto.talles && producto.talles.length > 0 && (
-          <div class="mb-8">
+        {tieneTalles && (
+          <div class="mb-6">
             <p class="text-xs tracking-widest uppercase mb-3">Talle</p>
             <div class="flex flex-wrap gap-2" id="talle-selector">
-              {producto.talles.map(talle => (
+              {talles.map(talle => (
                 <button
                   class="talle-btn border border-sand px-4 py-2.5 text-sm hover:border-dark transition-colors min-w-[3rem]"
                   data-talle={talle}
                 >
                   {talle}
                 </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Selector de colores -->
+        {tieneColores && (
+          <div class="mb-8">
+            <p class="text-xs tracking-widest uppercase mb-3">
+              Color <span id="color-label" class="normal-case font-normal text-sand ml-1"></span>
+            </p>
+            <div class="flex flex-wrap gap-2.5" id="color-selector">
+              {colores.map(color => (
+                <button
+                  class="color-btn w-7 h-7 rounded-full border-2 border-transparent ring-2 ring-transparent hover:ring-sand transition-all"
+                  style={`background-color: ${COLORES_HEX[color] ?? '#ccc'}`}
+                  data-color={color}
+                  title={color}
+                  aria-label={color}
+                />
               ))}
             </div>
           </div>
@@ -109,11 +149,14 @@ const imagenPrincipal = imagenesUrls[0] ?? null;
           class="w-full bg-terracotta text-offwhite py-4 text-xs tracking-widest uppercase flex items-center justify-center gap-3 hover:bg-terracotta-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           data-nombre={producto.nombre}
           data-precio={producto.precio}
+          data-precio-transf={precioTransferencia}
+          data-tiene-talles={tieneTalles}
+          data-tiene-colores={tieneColores}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
           </svg>
-          <span id="btn-texto">Seleccioná un talle</span>
+          <span id="btn-texto">Comprar por WhatsApp</span>
         </button>
 
         <p class="text-xs text-sand text-center mt-3 tracking-wide">
@@ -124,16 +167,43 @@ const imagenPrincipal = imagenesUrls[0] ?? null;
   </div>
 </Layout>
 
-<script>
+<script define:vars={{ tieneTalles, tieneColores }}>
   const WHATSAPP = '5491173742763';
-  let talleSeleccionado: string | null = null;
+  let talleSeleccionado = null;
+  let colorSeleccionado = null;
 
-  const btnWhatsapp = document.getElementById('btn-whatsapp') as HTMLButtonElement | null;
+  const btnWhatsapp = document.getElementById('btn-whatsapp');
   const btnTexto = document.getElementById('btn-texto');
-  const talleBtns = document.querySelectorAll<HTMLButtonElement>('.talle-btn');
-  const thumbnailBtns = document.querySelectorAll<HTMLButtonElement>('.thumbnail-btn');
-  const imgPrincipal = document.getElementById('imagen-principal') as HTMLImageElement | null;
+  const colorLabel = document.getElementById('color-label');
+  const talleBtns = document.querySelectorAll('.talle-btn');
+  const colorBtns = document.querySelectorAll('.color-btn');
+  const thumbnailBtns = document.querySelectorAll('.thumbnail-btn');
+  const imgPrincipal = document.getElementById('imagen-principal');
 
+  function actualizarBoton() {
+    const talleOk = !tieneTalles || talleSeleccionado !== null;
+    const colorOk = !tieneColores || colorSeleccionado !== null;
+    const listo = talleOk && colorOk;
+
+    if (btnWhatsapp) btnWhatsapp.disabled = !listo;
+
+    if (btnTexto) {
+      if (listo) {
+        btnTexto.textContent = 'Comprar por WhatsApp';
+      } else if (!talleOk && !colorOk) {
+        btnTexto.textContent = 'Seleccioná talle y color';
+      } else if (!talleOk) {
+        btnTexto.textContent = 'Seleccioná un talle';
+      } else {
+        btnTexto.textContent = 'Seleccioná un color';
+      }
+    }
+  }
+
+  // Estado inicial del botón
+  actualizarBoton();
+
+  // Talles
   talleBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       talleBtns.forEach(b => {
@@ -143,11 +213,26 @@ const imagenPrincipal = imagenesUrls[0] ?? null;
       btn.classList.add('bg-dark', 'text-offwhite', 'border-dark');
       btn.classList.remove('border-sand');
       talleSeleccionado = btn.dataset.talle ?? null;
-      if (btnWhatsapp) btnWhatsapp.disabled = false;
-      if (btnTexto) btnTexto.textContent = 'Comprar por WhatsApp';
+      actualizarBoton();
     });
   });
 
+  // Colores
+  colorBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      colorBtns.forEach(b => {
+        b.classList.remove('ring-dark', 'border-dark');
+        b.classList.add('ring-transparent', 'border-transparent');
+      });
+      btn.classList.add('ring-dark', 'border-white');
+      btn.classList.remove('ring-transparent', 'border-transparent');
+      colorSeleccionado = btn.dataset.color ?? null;
+      if (colorLabel) colorLabel.textContent = `— ${colorSeleccionado}`;
+      actualizarBoton();
+    });
+  });
+
+  // Galería
   thumbnailBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const src = btn.dataset.src;
@@ -163,17 +248,21 @@ const imagenPrincipal = imagenesUrls[0] ?? null;
     });
   });
 
+  // WhatsApp
   btnWhatsapp?.addEventListener('click', () => {
-    if (!talleSeleccionado || !btnWhatsapp) return;
+    if (btnWhatsapp.disabled) return;
     const nombre = btnWhatsapp.dataset.nombre ?? '';
     const precio = Number(btnWhatsapp.dataset.precio).toLocaleString('es-AR');
+    const precioTransf = Number(btnWhatsapp.dataset.precioTransf).toLocaleString('es-AR');
     const url = window.location.href;
-    const mensaje =
-      `Hola! Me gustaría hacer un pedido:\n\n` +
-      `👗 *${nombre}*\n` +
-      `📏 Talle: ${talleSeleccionado}\n` +
-      `💰 Precio: $${precio}\n` +
-      `🔗 ${url}`;
+
+    let mensaje = `Hola! Me gustaría hacer un pedido:\n\n👗 *${nombre}*\n`;
+    if (talleSeleccionado) mensaje += `📏 Talle: ${talleSeleccionado}\n`;
+    if (colorSeleccionado) mensaje += `🎨 Color: ${colorSeleccionado}\n`;
+    mensaje += `💰 Precio: $${precio}\n`;
+    mensaje += `💸 Con transferencia: $${precioTransf} (-10%)\n`;
+    mensaje += `🔗 ${url}`;
+
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(mensaje)}`, '_blank');
   });
 </script>

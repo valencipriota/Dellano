@@ -7,6 +7,7 @@ export interface Producto {
   categoria: { nombre: string; slug: { current: string } };
   precio: number;
   talles: string[];
+  colores: string[];
   imagenes: Array<{ _key: string; asset: { _ref: string } }>;
   descripcion?: string;
   destacado?: boolean;
@@ -18,7 +19,7 @@ export interface Categoria {
   slug: { current: string };
 }
 
-const CAMPOS = `_id, nombre, slug, "categoria": categoria->{ nombre, slug }, precio, talles, imagenes, destacado`;
+const CAMPOS = `_id, nombre, slug, "categoria": categoria->{ nombre, slug }, precio, talles, colores, imagenes, destacado`;
 
 export async function getProductos(): Promise<Producto[]> {
   try {
