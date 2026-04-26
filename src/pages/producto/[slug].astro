@@ -22,13 +22,7 @@ const imagenPrincipal = imagenesUrls[0] ?? null;
 const precioTransferencia = Math.round(producto.precio * 0.9);
 const colores = producto.colores ?? [];
 const talles = producto.talles ?? [];
-
-const tieneTalles = talles.length > 0;
-const tieneColores = colores.length > 0;
-
-const coloresJson = JSON.stringify(
-  Object.fromEntries(colores.map(c => [c, COLORES_HEX[c] ?? '#ccc']))
-);
+const tieneVariasFotos = imagenesUrls.length > 1;
 ---
 
 <Layout title={producto.nombre}>
@@ -51,7 +45,8 @@ const coloresJson = JSON.stringify(
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-20">
       <!-- Galería -->
       <div class="flex flex-col gap-3">
-        <div class="aspect-[3/4] bg-sand-light overflow-hidden">
+        <!-- Imagen principal con flechas -->
+        <div class="aspect-[3/4] bg-sand-light overflow-hidden relative">
           {imagenPrincipal ? (
             <img
               id="imagen-principal"
@@ -64,13 +59,51 @@ const coloresJson = JSON.stringify(
               Sin imagen
             </div>
           )}
+
+          {/* Flechas de navegación */}
+          {tieneVariasFotos && (
+            <>
+              <button
+                id="prev-img"
+                class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-offwhite/80 hover:bg-offwhite flex items-center justify-center transition-colors z-10"
+                aria-label="Imagen anterior"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </button>
+              <button
+                id="next-img"
+                class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-offwhite/80 hover:bg-offwhite flex items-center justify-center transition-colors z-10"
+                aria-label="Siguiente imagen"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+              <!-- Indicadores de punto -->
+              <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                {imagenesUrls.map((_, i) => (
+                  <span
+                    class={`dot-indicator w-1.5 h-1.5 rounded-full transition-colors ${i === 0 ? 'bg-dark' : 'bg-dark/30'}`}
+                    data-index={i}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Datos para JS */}
+          <div id="gallery-data" data-images={JSON.stringify(imagenesUrls)} class="hidden" />
         </div>
-        {imagenesUrls.length > 1 && (
+
+        {/* Miniaturas (referencia visual, las flechas son el nav principal) */}
+        {tieneVariasFotos && (
           <div class="flex gap-2 overflow-x-auto pb-1">
             {imagenesUrls.map((url, i) => (
               <button
                 class={`thumbnail-btn flex-shrink-0 w-20 h-24 overflow-hidden border-2 transition-colors ${i === 0 ? 'border-dark' : 'border-transparent hover:border-dark'}`}
-                data-src={url}
+                data-index={i}
                 aria-label={`Ver imagen ${i + 1}`}
               >
                 <img src={url} alt={`${producto.nombre} ${i + 1}`} class="w-full h-full object-cover" />
@@ -106,10 +139,10 @@ const coloresJson = JSON.stringify(
         )}
 
         <!-- Selector de talles -->
-        {tieneTalles && (
+        {talles.length > 0 && (
           <div class="mb-6">
             <p class="text-xs tracking-widest uppercase mb-3">Talle</p>
-            <div class="flex flex-wrap gap-2" id="talle-selector">
+            <div class="flex flex-wrap gap-2">
               {talles.map(talle => (
                 <button
                   class="talle-btn border border-sand px-4 py-2.5 text-sm hover:border-dark transition-colors min-w-[3rem]"
@@ -123,12 +156,12 @@ const coloresJson = JSON.stringify(
         )}
 
         <!-- Selector de colores -->
-        {tieneColores && (
+        {colores.length > 0 && (
           <div class="mb-8">
             <p class="text-xs tracking-widest uppercase mb-3">
               Color <span id="color-label" class="normal-case font-normal text-sand ml-1"></span>
             </p>
-            <div class="flex flex-wrap gap-2.5" id="color-selector">
+            <div class="flex flex-wrap gap-2.5">
               {colores.map(color => (
                 <button
                   class="color-btn w-7 h-7 rounded-full border-2 border-transparent ring-2 ring-transparent hover:ring-sand transition-all"
@@ -142,21 +175,18 @@ const coloresJson = JSON.stringify(
           </div>
         )}
 
-        <!-- Botón WhatsApp -->
+        <!-- Botón WhatsApp (siempre activo) -->
         <button
           id="btn-whatsapp"
-          disabled
-          class="w-full bg-terracotta text-offwhite py-4 text-xs tracking-widest uppercase flex items-center justify-center gap-3 hover:bg-terracotta-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          class="w-full bg-terracotta text-offwhite py-4 text-xs tracking-widest uppercase flex items-center justify-center gap-3 hover:bg-terracotta-dark transition-colors"
           data-nombre={producto.nombre}
           data-precio={producto.precio}
           data-precio-transf={precioTransferencia}
-          data-tiene-talles={tieneTalles}
-          data-tiene-colores={tieneColores}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
           </svg>
-          <span id="btn-texto">Comprar por WhatsApp</span>
+          Comprar por WhatsApp
         </button>
 
         <p class="text-xs text-sand text-center mt-3 tracking-wide">
@@ -167,43 +197,46 @@ const coloresJson = JSON.stringify(
   </div>
 </Layout>
 
-<script define:vars={{ tieneTalles, tieneColores }}>
+<script>
   const WHATSAPP = '5491173742763';
-  let talleSeleccionado = null;
-  let colorSeleccionado = null;
+  let talleSeleccionado: string | null = null;
+  let colorSeleccionado: string | null = null;
+  let currentIndex = 0;
 
-  const btnWhatsapp = document.getElementById('btn-whatsapp');
-  const btnTexto = document.getElementById('btn-texto');
+  const btnWhatsapp = document.getElementById('btn-whatsapp') as HTMLButtonElement;
   const colorLabel = document.getElementById('color-label');
-  const talleBtns = document.querySelectorAll('.talle-btn');
-  const colorBtns = document.querySelectorAll('.color-btn');
-  const thumbnailBtns = document.querySelectorAll('.thumbnail-btn');
-  const imgPrincipal = document.getElementById('imagen-principal');
+  const talleBtns = document.querySelectorAll<HTMLButtonElement>('.talle-btn');
+  const colorBtns = document.querySelectorAll<HTMLButtonElement>('.color-btn');
+  const thumbnailBtns = document.querySelectorAll<HTMLButtonElement>('.thumbnail-btn');
+  const imgPrincipal = document.getElementById('imagen-principal') as HTMLImageElement | null;
+  const dots = document.querySelectorAll<HTMLElement>('.dot-indicator');
 
-  function actualizarBoton() {
-    const talleOk = !tieneTalles || talleSeleccionado !== null;
-    const colorOk = !tieneColores || colorSeleccionado !== null;
-    const listo = talleOk && colorOk;
+  const galleryData = document.getElementById('gallery-data') as HTMLElement | null;
+  const imagenesUrls: string[] = JSON.parse(galleryData?.dataset.images ?? '[]');
 
-    if (btnWhatsapp) btnWhatsapp.disabled = !listo;
-
-    if (btnTexto) {
-      if (listo) {
-        btnTexto.textContent = 'Comprar por WhatsApp';
-      } else if (!talleOk && !colorOk) {
-        btnTexto.textContent = 'Seleccioná talle y color';
-      } else if (!talleOk) {
-        btnTexto.textContent = 'Seleccioná un talle';
-      } else {
-        btnTexto.textContent = 'Seleccioná un color';
-      }
-    }
+  // ── Galería con flechas ──────────────────────────────────────────
+  function goTo(index: number) {
+    if (imagenesUrls.length === 0) return;
+    currentIndex = (index + imagenesUrls.length) % imagenesUrls.length;
+    if (imgPrincipal) imgPrincipal.src = imagenesUrls[currentIndex];
+    thumbnailBtns.forEach((b, i) => {
+      b.classList.toggle('border-dark', i === currentIndex);
+      b.classList.toggle('border-transparent', i !== currentIndex);
+    });
+    dots.forEach((d, i) => {
+      d.classList.toggle('bg-dark', i === currentIndex);
+      d.classList.toggle('bg-dark/30', i !== currentIndex);
+    });
   }
 
-  // Estado inicial del botón
-  actualizarBoton();
+  document.getElementById('prev-img')?.addEventListener('click', () => goTo(currentIndex - 1));
+  document.getElementById('next-img')?.addEventListener('click', () => goTo(currentIndex + 1));
 
-  // Talles
+  thumbnailBtns.forEach((btn, i) => {
+    btn.addEventListener('click', () => goTo(i));
+  });
+
+  // ── Talles ───────────────────────────────────────────────────────
   talleBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       talleBtns.forEach(b => {
@@ -213,52 +246,33 @@ const coloresJson = JSON.stringify(
       btn.classList.add('bg-dark', 'text-offwhite', 'border-dark');
       btn.classList.remove('border-sand');
       talleSeleccionado = btn.dataset.talle ?? null;
-      actualizarBoton();
     });
   });
 
-  // Colores
+  // ── Colores ──────────────────────────────────────────────────────
   colorBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       colorBtns.forEach(b => {
-        b.classList.remove('ring-dark', 'border-dark');
+        b.classList.remove('ring-dark', 'border-white');
         b.classList.add('ring-transparent', 'border-transparent');
       });
       btn.classList.add('ring-dark', 'border-white');
       btn.classList.remove('ring-transparent', 'border-transparent');
       colorSeleccionado = btn.dataset.color ?? null;
       if (colorLabel) colorLabel.textContent = `— ${colorSeleccionado}`;
-      actualizarBoton();
     });
   });
 
-  // Galería
-  thumbnailBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const src = btn.dataset.src;
-      if (src && imgPrincipal) {
-        imgPrincipal.src = src;
-        thumbnailBtns.forEach(b => {
-          b.classList.remove('border-dark');
-          b.classList.add('border-transparent');
-        });
-        btn.classList.add('border-dark');
-        btn.classList.remove('border-transparent');
-      }
-    });
-  });
-
-  // WhatsApp
+  // ── WhatsApp ─────────────────────────────────────────────────────
   btnWhatsapp?.addEventListener('click', () => {
-    if (btnWhatsapp.disabled) return;
     const nombre = btnWhatsapp.dataset.nombre ?? '';
     const precio = Number(btnWhatsapp.dataset.precio).toLocaleString('es-AR');
     const precioTransf = Number(btnWhatsapp.dataset.precioTransf).toLocaleString('es-AR');
     const url = window.location.href;
 
     let mensaje = `Hola! Me gustaría hacer un pedido:\n\n👗 *${nombre}*\n`;
-    if (talleSeleccionado) mensaje += `📏 Talle: ${talleSeleccionado}\n`;
-    if (colorSeleccionado) mensaje += `🎨 Color: ${colorSeleccionado}\n`;
+    mensaje += `📏 Talle: ${talleSeleccionado ?? 'No especificado'}\n`;
+    mensaje += `🎨 Color: ${colorSeleccionado ?? 'No especificado'}\n`;
     mensaje += `💰 Precio: $${precio}\n`;
     mensaje += `💸 Con transferencia: $${precioTransf} (-10%)\n`;
     mensaje += `🔗 ${url}`;
